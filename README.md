@@ -74,8 +74,7 @@ A compilação transformará seus arquivos de código-fonte (`.java`) em bytecod
         ```sh
         javac -d bin -cp "lib/*" src/com/biblioteca/*.java
         ```
-    > **Nota:** O uso de `lib\*` ou `lib/*` inclui automaticamente todos os JARs da pasta.
-
+        
 #### **4. Passos para Execução (Via Terminal)**
 
 Agora que o projeto está compilado, você pode executá-lo.
