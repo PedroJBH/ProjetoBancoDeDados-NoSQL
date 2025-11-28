@@ -90,8 +90,7 @@ Agora que o projeto está compilado, você pode executá-lo.
         ```sh
         java -cp "bin:lib/*" com.biblioteca.Main
         ```
-    > **Atenção:** No Windows usa-se ponto-e-vírgula `;` e no Linux/Mac usa-se dois-pontos `:` para separar caminhos.
-
+        
 #### **5. O Que Esperar**
 
 Se tudo ocorreu bem, você verá o seguinte no terminal:
