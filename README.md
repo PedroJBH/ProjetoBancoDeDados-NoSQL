@@ -158,4 +158,3 @@ A aplicação recria o banco automaticamente ao iniciar. Porém, se precisar rod
   * A janela **"Run"** do IntelliJ abrirá na parte inferior.
   * Você verá as mensagens de "Conexão estabelecida" seguidas pelo menu interativo.
   * Os dados serão persistidos no seu banco de dados MongoDB local.
-```` 
