@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public class Main {
     private static final Scanner scanner = new Scanner(System.in);
-    
+
     private static final LivroDAO livroDAO = new LivroDAO();
     private static final AutorDAO autorDAO = new AutorDAO();
     private static final UsuarioDAO usuarioDAO = new UsuarioDAO();
@@ -38,6 +38,7 @@ public class Main {
                     break;
                 case 0:
                     System.out.println("Saindo da aplicação. Até mais!");
+                    MongoDatabaseManager.close();
                     return;
                 default:
                     System.out.println("Opção inválida. Tente novamente.");
@@ -67,61 +68,105 @@ public class Main {
             int choice = readInt("Escolha uma opção: ");
 
             switch (choice) {
-                case 1:
-                    menuCRUDLivros();
-                    break;
-                case 2:
-                    menuCRUDAutores();
-                    break;
-                case 3:
-                    menuCRUDUsuarios();
-                    break;
-                case 4:
-                    menuCRUDEditoras();
-                    break;
-                case 5:
-                    menuCRUDCategorias();
-                    break;
-                case 6:
-                    menuCRUDExemplares();
-                    break;
-                case 7:
-                    menuCRUDReservas();
-                    break;
-                case 0:
-                    return;
-                default:
-                    System.out.println("Opção inválida. Tente novamente.");
+                case 1: menuCRUDLivros(); break;
+                case 2: menuCRUDAutores(); break;
+                case 3: menuCRUDUsuarios(); break;
+                case 4: menuCRUDEditoras(); break;
+                case 5: menuCRUDCategorias(); break;
+                case 6: menuCRUDExemplares(); break;
+                case 7: menuCRUDReservas(); break;
+                case 0: return;
+                default: System.out.println("Opção inválida. Tente novamente.");
             }
         }
     }
-    
+
     private static void listarEditoras() {
-        System.out.println("\n--- Editoras Disponíveis ---");
-        editoraDAO.readAll().forEach(e -> System.out.println("ID: " + e.getId() + " | Nome: " + e.getNome()));
+        System.out.println("\n--- Lista de Editoras ---");
+        List<Editora> lista = editoraDAO.readAll();
+        if (lista.isEmpty()) System.out.println("Nenhuma editora cadastrada.");
+        else lista.forEach(e -> System.out.println("ID: " + e.getId() + " | Nome: " + e.getNome()));
+        System.out.println("-------------------------");
     }
 
     private static void listarCategorias() {
-        System.out.println("\n--- Categorias Disponíveis ---");
-        categoriaDAO.readAll().forEach(c -> System.out.println("ID: " + c.getId() + " | Nome: " + c.getNome()));
+        System.out.println("\n--- Lista de Categorias ---");
+        List<Categoria> lista = categoriaDAO.readAll();
+        if (lista.isEmpty()) System.out.println("Nenhuma categoria cadastrada.");
+        else lista.forEach(c -> System.out.println("ID: " + c.getId() + " | Nome: " + c.getNome()));
+        System.out.println("---------------------------");
     }
 
     private static void listarAutores() {
-        System.out.println("\n--- Autores Disponíveis ---");
-        autorDAO.readAll().forEach(a -> System.out.println("ID: " + a.getId() + " | Nome: " + a.getNome()));
+        System.out.println("\n--- Lista de Autores ---");
+        List<Autor> lista = autorDAO.readAll();
+        if (lista.isEmpty()) System.out.println("Nenhum autor cadastrado.");
+        else lista.forEach(a -> System.out.println("ID: " + a.getId() + " | Nome: " + a.getNome()));
+        System.out.println("------------------------");
     }
-    
+
+    private static void listarLivros() {
+        System.out.println("\n--- Lista de Livros (Títulos) ---");
+        List<Livro> lista = livroDAO.readAll();
+        if (lista.isEmpty()) System.out.println("Nenhum livro cadastrado.");
+        else lista.forEach(l -> System.out.println("ID: " + l.getId() + " | Título: " + l.getTitulo()));
+        System.out.println("---------------------------------");
+    }
+
+    private static void listarUsuarios() {
+        System.out.println("\n--- Lista de Usuários ---");
+        List<Usuario> lista = usuarioDAO.readAll();
+        if (lista.isEmpty()) System.out.println("Nenhum usuário cadastrado.");
+        else lista.forEach(u -> System.out.println("ID: " + u.getId() + " | Nome: " + u.getNome()));
+        System.out.println("-------------------------");
+    }
+
+    private static void listarExemplares() {
+        System.out.println("\n--- Lista de Exemplares ---");
+        List<Exemplar> lista = exemplarDAO.readAll();
+        if (lista.isEmpty()) System.out.println("Nenhum exemplar cadastrado.");
+        else lista.forEach(ex -> System.out.println("ID: " + ex.getId() + " | Livro: " + ex.getLivro().getTitulo() + " | Status: " + ex.getStatus()));
+        System.out.println("---------------------------");
+    }
+
+    private static void listarReservas() {
+        System.out.println("\n--- Lista de Reservas ---");
+        List<Reserva> lista = reservaDAO.readAll();
+        if (lista.isEmpty()) System.out.println("Nenhuma reserva cadastrada.");
+        else lista.forEach(r -> System.out.println("ID: " + r.getId() + " | Livro: " + r.getLivro().getTitulo() + " | Usuário: " + r.getUsuario().getNome()));
+        System.out.println("-------------------------");
+    }
+
+    private static void listarEmprestimosAtivos() {
+        System.out.println("\n--- Empréstimos Ativos (Para Devolução/Renovação) ---");
+        List<Emprestimo> ativos = emprestimoDAO.relatorioEmprestimosAtivos();
+        if (ativos.isEmpty()) {
+            System.out.println("Nenhum empréstimo ativo no momento.");
+        } else {
+            ativos.forEach(e -> {
+                Exemplar ex = exemplarDAO.read(e.getIdExemplar());
+                if (ex != null) {
+                    Usuario u = usuarioDAO.read(e.getIdUsuario());
+                    if (u != null) {
+                        System.out.println("ID Empréstimo: " + e.getId() + " | Livro: " + ex.getLivro().getTitulo() + " | Usuário: " + u.getNome() + " | Devolução Prevista: " + e.getDataDevolucaoPrevista());
+                    }
+                }
+            });
+        }
+        System.out.println("-----------------------------------------------------");
+    }
+
     private static void associarMultiplosAutores(int idLivro) {
         System.out.println("\n--- ASSOCIAR AUTORES AO LIVRO (Relação N:M) ---");
-        listarAutores();
-        
+        listarAutores(); // Já lista para facilitar a escolha
+
         while (true) {
             int idAutor = readInt("ID do Autor a ser associado (0 para finalizar): ");
-            
+
             if (idAutor == 0) {
                 break;
             }
-            
+
             Autor autor = autorDAO.read(idAutor);
             if (autor != null) {
                 if (livroAutorDAO.adicionarAutorALivro(idLivro, idAutor)) {
@@ -134,7 +179,9 @@ public class Main {
             }
         }
     }
-    
+
+    // ---------------------------------------------------------------------
+
     private static void menuCRUDLivros() {
         while (true) {
             System.out.println("\n--- CRUD LIVROS (TÍTULOS) ---");
@@ -154,20 +201,18 @@ public class Main {
 
                     listarEditoras();
                     int idEditora = readInt("ID da Editora: ");
-                    
+
                     listarCategorias();
                     int idCategoria = readInt("ID da Categoria: ");
-                    
+
                     Editora editora = editoraDAO.read(idEditora);
                     Categoria categoria = categoriaDAO.read(idCategoria);
-                    
+
                     if (editora != null && categoria != null) {
                         int novoLivroId = livroDAO.create(new Livro(0, titulo, ano, editora, categoria));
                         if (novoLivroId != -1) {
                             System.out.println("Livro cadastrado com sucesso! ID: " + novoLivroId);
-                            
                             associarMultiplosAutores(novoLivroId);
-                            
                         } else {
                             System.out.println("Erro ao cadastrar o livro.");
                         }
@@ -176,25 +221,27 @@ public class Main {
                     }
                     break;
                 case 2:
+                    listarLivros(); // NOVO: Mostra lista antes de pedir ID
                     int id = readInt("ID do Livro: ");
                     Livro livro = livroDAO.read(id);
                     System.out.println(livro != null ? livro : "Livro não encontrado.");
                     break;
                 case 3:
+                    listarLivros(); // NOVO: Mostra lista antes de pedir ID
                     int idUpdate = readInt("ID do Livro a ser atualizado: ");
                     System.out.print("Novo Título: ");
                     String novoTitulo = scanner.nextLine();
                     int novoAno = readInt("Novo Ano de Publicação: ");
-                    
+
                     listarEditoras();
                     int novoIdEditora = readInt("Novo ID da Editora: ");
-                    
+
                     listarCategorias();
                     int novoIdCategoria = readInt("Novo ID da Categoria: ");
-                    
+
                     Editora novaEditora = editoraDAO.read(novoIdEditora);
                     Categoria novaCategoria = categoriaDAO.read(novoIdCategoria);
-                    
+
                     if (novaEditora != null && novaCategoria != null) {
                         livroDAO.update(new Livro(idUpdate, novoTitulo, novoAno, novaEditora, novaCategoria));
                     } else {
@@ -202,6 +249,7 @@ public class Main {
                     }
                     break;
                 case 4:
+                    listarLivros(); // NOVO: Mostra lista antes de pedir ID
                     int idDelete = readInt("ID do Livro a ser removido: ");
                     livroDAO.delete(idDelete);
                     break;
@@ -235,17 +283,20 @@ public class Main {
                     autorDAO.create(new Autor(0, nome));
                     break;
                 case 2:
+                    listarAutores(); // NOVO
                     int id = readInt("ID do Autor: ");
                     Autor autor = autorDAO.read(id);
                     System.out.println(autor != null ? autor : "Autor não encontrado.");
                     break;
                 case 3:
+                    listarAutores(); // NOVO
                     int idUpdate = readInt("ID do Autor a ser atualizado: ");
                     System.out.print("Novo Nome: ");
                     String novoNome = scanner.nextLine();
                     autorDAO.update(new Autor(idUpdate, novoNome));
                     break;
                 case 4:
+                    listarAutores(); // NOVO
                     int idDelete = readInt("ID do Autor a ser removido: ");
                     autorDAO.delete(idDelete);
                     break;
@@ -283,11 +334,13 @@ public class Main {
                     usuarioDAO.create(new Usuario(0, nome, email, endereco));
                     break;
                 case 2:
+                    listarUsuarios(); // NOVO
                     int id = readInt("ID do Usuário: ");
                     Usuario usuario = usuarioDAO.read(id);
                     System.out.println(usuario != null ? usuario : "Usuário não encontrado.");
                     break;
                 case 3:
+                    listarUsuarios(); // NOVO
                     int idUpdate = readInt("ID do Usuário a ser atualizado: ");
                     System.out.print("Novo Nome: ");
                     String novoNome = scanner.nextLine();
@@ -298,6 +351,7 @@ public class Main {
                     usuarioDAO.update(new Usuario(idUpdate, novoNome, novoEmail, novoEndereco));
                     break;
                 case 4:
+                    listarUsuarios(); // NOVO
                     int idDelete = readInt("ID do Usuário a ser removido: ");
                     usuarioDAO.delete(idDelete);
                     break;
@@ -312,7 +366,7 @@ public class Main {
             }
         }
     }
-    
+
     private static void menuCRUDEditoras() {
         while (true) {
             System.out.println("\n--- CRUD EDITORAS ---");
@@ -331,17 +385,20 @@ public class Main {
                     editoraDAO.create(new Editora(0, nome));
                     break;
                 case 2:
+                    listarEditoras(); // NOVO
                     int id = readInt("ID da Editora: ");
                     Editora editora = editoraDAO.read(id);
                     System.out.println(editora != null ? editora : "Editora não encontrada.");
                     break;
                 case 3:
+                    listarEditoras(); // NOVO
                     int idUpdate = readInt("ID da Editora a ser atualizada: ");
                     System.out.print("Novo Nome: ");
                     String novoNome = scanner.nextLine();
                     editoraDAO.update(new Editora(idUpdate, novoNome));
                     break;
                 case 4:
+                    listarEditoras(); // NOVO
                     int idDelete = readInt("ID da Editora a ser removida: ");
                     editoraDAO.delete(idDelete);
                     break;
@@ -356,7 +413,7 @@ public class Main {
             }
         }
     }
-    
+
     private static void menuCRUDCategorias() {
         while (true) {
             System.out.println("\n--- CRUD CATEGORIAS ---");
@@ -375,17 +432,20 @@ public class Main {
                     categoriaDAO.create(new Categoria(0, nome));
                     break;
                 case 2:
+                    listarCategorias(); // NOVO
                     int id = readInt("ID da Categoria: ");
                     Categoria categoria = categoriaDAO.read(id);
                     System.out.println(categoria != null ? categoria : "Categoria não encontrada.");
                     break;
                 case 3:
+                    listarCategorias(); // NOVO
                     int idUpdate = readInt("ID da Categoria a ser atualizada: ");
                     System.out.print("Novo Nome: ");
                     String novoNome = scanner.nextLine();
                     categoriaDAO.update(new Categoria(idUpdate, novoNome));
                     break;
                 case 4:
+                    listarCategorias(); // NOVO
                     int idDelete = readInt("ID da Categoria a ser removida: ");
                     categoriaDAO.delete(idDelete);
                     break;
@@ -414,7 +474,7 @@ public class Main {
 
             switch (choice) {
                 case 1:
-                    livroDAO.readAll().forEach(l -> System.out.println("ID: " + l.getId() + " | Título: " + l.getTitulo()));
+                    listarLivros(); // Já existia, mas padronizei o método
                     int idLivroExemplar = readInt("ID do Livro (título) ao qual este exemplar pertence: ");
                     Livro livroAssociado = livroDAO.read(idLivroExemplar);
                     if (livroAssociado != null) {
@@ -424,11 +484,13 @@ public class Main {
                     }
                     break;
                 case 2:
+                    listarExemplares(); // NOVO
                     int id = readInt("ID do Exemplar: ");
                     Exemplar exemplar = exemplarDAO.read(id);
                     System.out.println(exemplar != null ? exemplar : "Exemplar não encontrado.");
                     break;
                 case 3:
+                    listarExemplares(); // NOVO
                     int idUpdate = readInt("ID do Exemplar a ser atualizado: ");
                     Exemplar exemplarUpdate = exemplarDAO.read(idUpdate);
                     if (exemplarUpdate != null) {
@@ -441,6 +503,7 @@ public class Main {
                     }
                     break;
                 case 4:
+                    listarExemplares(); // NOVO
                     int idDelete = readInt("ID do Exemplar a ser removido: ");
                     exemplarDAO.delete(idDelete);
                     break;
@@ -455,7 +518,7 @@ public class Main {
             }
         }
     }
-    
+
     private static void menuCRUDReservas() {
         while (true) {
             System.out.println("\n--- CRUD RESERVAS ---");
@@ -468,14 +531,17 @@ public class Main {
             switch (choice) {
                 case 1:
                     List<Reserva> reservas = reservaDAO.readAll();
-                    reservas.forEach(System.out::println);
+                    if(reservas.isEmpty()) System.out.println("Nenhuma reserva encontrada.");
+                    else reservas.forEach(System.out::println);
                     break;
                 case 2:
+                    listarReservas(); // NOVO
                     int id = readInt("ID da Reserva: ");
                     Reserva reserva = reservaDAO.read(id);
                     System.out.println(reserva != null ? reserva : "Reserva não encontrada.");
                     break;
                 case 3:
+                    listarReservas(); // NOVO
                     int idDelete = readInt("ID da Reserva a ser removida: ");
                     reservaDAO.delete(idDelete);
                     break;
@@ -499,12 +565,12 @@ public class Main {
 
             switch (choice) {
                 case 1:
-                    livroDAO.readAll().forEach(l -> System.out.println("ID: " + l.getId() + " | Título: " + l.getTitulo()));
+                    listarLivros(); // Já existia
                     int idLivroEmprestimo = readInt("ID do Livro (título) a ser emprestado/reservado: ");
-                    
-                    usuarioDAO.readAll().forEach(u -> System.out.println("ID: " + u.getId() + " | Nome: " + u.getNome()));
+
+                    listarUsuarios(); // NOVO: Agora lista usuários também
                     int idUsuarioEmprestimo = readInt("ID do Usuário: ");
-                    
+
                     Livro livro = livroDAO.read(idLivroEmprestimo);
                     Usuario usuario = usuarioDAO.read(idUsuarioEmprestimo);
 
@@ -515,19 +581,25 @@ public class Main {
                     }
                     break;
                 case 2:
+                    listarEmprestimosAtivos(); // Já existia
                     int idEmprestimo = readInt("ID do Empréstimo a ser finalizado: ");
                     emprestimoDAO.devolverLivro(idEmprestimo);
                     break;
                 case 3:
-                    livroDAO.readAll().forEach(l -> System.out.println("ID: " + l.getId() + " | Título: " + l.getTitulo()));
+                    listarLivros(); // Já existia
                     int idLivroAutor = readInt("ID do Livro: ");
-                    
-                    listarAutores();
+
+                    listarAutores(); // Já existia
                     int idAutorLivro = readInt("ID do Autor: ");
-                    
-                    livroAutorDAO.adicionarAutorALivro(idLivroAutor, idAutorLivro);
+
+                    if (livroAutorDAO.adicionarAutorALivro(idLivroAutor, idAutorLivro)) {
+                        System.out.println("Autor associado com sucesso.");
+                    } else {
+                        System.out.println("Erro ou associação já existente.");
+                    }
                     break;
                 case 4:
+                    listarEmprestimosAtivos(); // Já existia
                     int idEmprestimoRenovacao = readInt("ID do Empréstimo a ser renovado: ");
                     emprestimoDAO.renovarEmprestimo(idEmprestimoRenovacao);
                     break;
@@ -541,7 +613,7 @@ public class Main {
 
     private static void menuRelatorios() {
         System.out.println("\n--- RELATÓRIOS DO SISTEMA ---");
-        
+
         System.out.println("\n--- Relatório 1: Empréstimos Ativos ---");
         List<Emprestimo> emprestimosAtivos = emprestimoDAO.relatorioEmprestimosAtivos();
         if (emprestimosAtivos.isEmpty()) {
@@ -558,9 +630,9 @@ public class Main {
                 }
             });
         }
-        
+
         System.out.println("\n--- Relatório 2: Livros por Autor ---");
-        listarAutores();
+        listarAutores(); // Já existia
         int autorId = readInt("Digite o ID do Autor para gerar o relatório: ");
         List<Livro> livrosPorAutor = autorDAO.relatorioLivrosPorAutor(autorId);
         if (livrosPorAutor.isEmpty()) {
@@ -578,20 +650,21 @@ public class Main {
         } else {
             usuariosAtrasados.forEach(u -> System.out.println("ID: " + u.getId() + " | Nome: " + u.getNome() + " | Email: " + u.getEmail()));
         }
-        
+
         System.out.println("\n--- Reservas Ativas ---");
         List<Reserva> reservas = reservaDAO.readAll();
-        reservas.forEach(System.out::println);
-        
+        if (reservas.isEmpty()) System.out.println("Nenhuma reserva ativa.");
+        else reservas.forEach(System.out::println);
+
         System.out.println();
     }
-    
+
     private static int readInt(String prompt) {
         while (true) {
             try {
                 System.out.print(prompt);
                 int value = scanner.nextInt();
-                scanner.nextLine(); 
+                scanner.nextLine();
                 return value;
             } catch (InputMismatchException e) {
                 System.out.println("Entrada inválida. Por favor, digite um número inteiro.");
